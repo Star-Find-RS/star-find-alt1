@@ -3,31 +3,31 @@ import "./index.html";
 import "./appconfig.json";
 import "./css/style.css";
 import "./icon.png";
-import Papa from "papaparse";
 import isEqual from "lodash/isEqual";
 
-const SHEET_CSV_URL =
-    "https://docs.google.com/spreadsheets/d/1ctBuqO42ZYYheuEIsbJO1NFPAJsoMrJv9oWxyhsBH9g/export?format=csv&gid=1852026355";
+const BASE_URL ="http://localhost:8000";
+// TODO: point to the actual endpoint
 
 const output = document.getElementById("output") as HTMLElement;
 let previousData: Record<string, string>[] | null = null;
 let currentSortKey: string | null = null;
 let sortDirection: "asc" | "desc" = "asc";
 
-async function fetchAndDisplaySheet() {
+async function fetchAndDisplayData() {
     try {
-        const response = await fetch(SHEET_CSV_URL);
+        //TODO: if there is a ws connection, use that instead
+        const response = await fetch(`${BASE_URL}/api/stars`);
         if (!response.ok) {
-            throw new Error("Failed to fetch the Google Sheet.");
+            throw new Error("Failed to fetch the data.");
         }
-        const csvText = await response.text();
+        const responseData = await response.json();
 
-        const parsedData = Papa.parse(csvText, {
-            header: true,
-            skipEmptyLines: true,
-        });
-
-        const data = parsedData.data as Record<string, string>[];
+        const data = responseData.map((item: any) => ({
+            World: item.world.number.toString(),
+            Location: item.location,
+            Time: new Date(item.time * 1000).toLocaleString(),
+            Size: item.size.toString(),
+        }));
 
         if (!isEqual(data, previousData)) {
             previousData = data;
@@ -135,8 +135,8 @@ function displayTable(data: Record<string, string>[]) {
     output.appendChild(table);
 }
 
-fetchAndDisplaySheet();
-setInterval(fetchAndDisplaySheet, 30000);
+fetchAndDisplayData();
+setInterval(fetchAndDisplayData, 30000);
 
 if (window.alt1) {
     alt1.identifyAppUrl("./appconfig.json");

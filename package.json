@@ -5,8 +5,7 @@
 	},
 	"dependencies": {
 		"alt1": "^0.0.9",
-		"lodash": "^4.17.21",
-		"papaparse": "^5.4.1"
+		"lodash": "^4.17.21"
 	},
 	"devDependencies": {
 		"@types/node": "^12.12.54",
