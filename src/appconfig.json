@@ -1,0 +1,16 @@
+{
+	"appName": "Starfind",
+	"description": "This app shows the shooting stars locations (provided from the StarFind FC/Discord)",
+	"appUrl": "./index.html",
+	"configUrl": "./appconfig.json",
+	"iconUrl": "./icon.png",
+	"defaultWidth": 250,
+	"defaultHeight": 250,
+	"minWidth": 250,
+	"minHeight": 180,
+	"maxWidth": 1000,
+	"maxHeight": 1000,
+	"requestHandlers": [ ],
+	"activators": [	],
+	"permissions": ""
+}

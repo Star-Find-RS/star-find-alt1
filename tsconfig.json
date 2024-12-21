@@ -1,0 +1,7 @@
+{
+	"compilerOptions": {
+		"resolvePackageJsonExports": true,
+		"moduleResolution": "bundler",
+		"module": "ESNext",
+	}
+}

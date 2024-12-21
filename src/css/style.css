@@ -1,0 +1,39 @@
+#output {
+    max-height: 95vh;
+    overflow-y: auto;
+    width: 100%;
+}
+
+
+.icon-size {
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-family: Arial, sans-serif;
+}
+
+th, td {
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+tr:nth-child(even) {
+    background-color: rgba(221, 221, 221, 0.1);
+}
+
+.header {
+    top: 15px;
+    text-align: center;
+    background: url(https://runeapps.org/nis/alt1-currentskin/nisbutton.png) 0 -100%/24px 400% repeat content-box;
+    background-color: black;
+    color: black;
+    z-index: 1;
+}
