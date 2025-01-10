@@ -11,6 +11,6 @@
 	"maxWidth": 1000,
 	"maxHeight": 1000,
 	"requestHandlers": [ ],
-	"activators": [	],
-	"permissions": ""
+	"activators": [	], 
+	"permissions": "overlay"
 }
