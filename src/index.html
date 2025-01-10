@@ -13,7 +13,20 @@
 
 <body class="nis">
 <div id="alt1warning"></div>
-<div id="output" class="container"></div>
+<div id="output" class="container">
+    <table>
+        <thead>
+        <tr class="header">
+            <th style="cursor: pointer;" data-column="world">World</th>
+            <th style="cursor: pointer;" data-column="location">Location</th>
+            <th style="cursor: pointer;" data-column="size">Size</th>
+            <th style="cursor: pointer;" data-column="dropTime">Drop Time</th>
+            <th style="cursor: pointer;" data-column="timeUntillDrop">Time Until Drop</th>
+        </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+    </table>
+</div>
 <script src="./main.js"></script>
 </body>
 </html>

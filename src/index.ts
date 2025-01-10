@@ -3,140 +3,101 @@ import "./index.html";
 import "./appconfig.json";
 import "./css/style.css";
 import "./icon.png";
+import {StarData} from "./types/StarData";
 import isEqual from "lodash/isEqual";
 
-const BASE_URL ="http://localhost:8000";
-// TODO: point to the actual endpoint
+const BASE_URL ="https://api.starfind.net"
 
-const output = document.getElementById("output") as HTMLElement;
-let previousData: Record<string, string>[] | null = null;
-let currentSortKey: string | null = null;
-let sortDirection: "asc" | "desc" = "asc";
+const tableContent = document.getElementById("table-body") as HTMLElement;
+let previousData: StarData[] | null = null;
+
+function calculateRemainingTime(time: Date): string {
+    const now = new Date();
+    const diffMs = time.getTime() - now.getTime();
+
+    if (diffMs > 0) {
+        const hours = Math.floor(diffMs / (1000 * 60 * 60));
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    } else {
+        return "Expired";
+    }
+}
+
+function messageRow(textContent: string) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 5;
+    td.textContent = textContent;
+    tr.appendChild(td);
+    return tr;
+}
 
 async function fetchAndDisplayData() {
     try {
-        //TODO: if there is a ws connection, use that instead
-        const response = await fetch(`${BASE_URL}/api/stars`);
+        const response = await fetch(`${BASE_URL}/api/waves/current`);
         if (!response.ok) {
             throw new Error("Failed to fetch the data.");
         }
         const responseData = await response.json();
-
-        const data = responseData.map((item: any) => ({
-            World: item.world.number.toString(),
-            Location: item.location,
-            Time: new Date(item.time * 1000).toLocaleString(),
-            Size: item.size.toString(),
-        }));
+        const data: StarData[] = responseData.stars.map((item: StarData) => {
+            const time = new Date(item.time * 1000);
+            return {
+                world: {
+                    number: item.world.number,
+                    type: item.world.type
+                },
+                location: item.location,
+                size: item.size,
+                dropTime: time.toLocaleString(),
+                timeUntillDrop: calculateRemainingTime(time)
+            };
+        });
 
         if (!isEqual(data, previousData)) {
             previousData = data;
             displayTable(data);
         }
     } catch (error) {
-        console.error("Error fetching or parsing Google Sheet:", error);
-        output.innerHTML = "<p>Error loading data. Please try again later.</p>";
+        tableContent.innerHTML = "";
+        tableContent.appendChild(messageRow("Error fetching data."));
     }
 }
 
-function displayTable(data: Record<string, string>[]) {
+function displayTable(data: StarData[]) {
     if (!data.length) {
-        output.innerHTML = "<p>No data available.</p>";
+        tableContent.innerHTML = "";
+        tableContent.appendChild(messageRow("No stars scoped in the current wave yet."));
         return;
     }
-
-    if (currentSortKey) {
-        data.sort((a, b) => {
-            const aValue = (a[currentSortKey] || "").toLowerCase().trim();
-            const bValue = (b[currentSortKey] || "").toLowerCase().trim();
-
-            if (currentSortKey === "Size") {
-                const sizeOrder = ["", "tub", "s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10"];
-                return (sizeOrder.indexOf(aValue) - sizeOrder.indexOf(bValue)) * (sortDirection === "asc" ? 1 : -1);
-            }
-
-            if (currentSortKey === "Size Range") {
-                const rangeOrder = ["", "small", "med", "big", "very big"];
-                return (rangeOrder.indexOf(aValue) - rangeOrder.indexOf(bValue)) * (sortDirection === "asc" ? 1 : -1);
-            }
-
-            if (currentSortKey === "World") {
-                const aWorld = parseInt(aValue) || 0;
-                const bWorld = parseInt(bValue) || 0;
-                return (aWorld - bWorld) * (sortDirection === "asc" ? 1 : -1);
-            }
-
-            return aValue.localeCompare(bValue) * (sortDirection === "asc" ? 1 : -1);
-        });
-    }
-
-    const table = document.createElement("table");
-
-    const headers = Object.keys(data[0]);
-    const thead = document.createElement("thead");
-    const headerRow = document.createElement("tr");
-    headerRow.classList.add("header");
-
-    headers.forEach((header) => {
-        if (header !== "F2P") {
-            const th = document.createElement("th");
-            th.textContent = header;
-            th.style.cursor = "pointer";
-            th.addEventListener("click", () => {
-                if (currentSortKey === header) {
-                    sortDirection = sortDirection === "asc" ? "desc" : "asc";
-                } else {
-                    currentSortKey = header;
-                    sortDirection = "asc";
-                }
-                displayTable(data);
-            });
-            headerRow.appendChild(th);
-        }
-    });
-
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-
-    const tbody = document.createElement("tbody");
-    data.forEach((row) => {
+    data.forEach((row: Record<string,any>) => {
         const tr = document.createElement("tr");
 
-        headers.forEach((header) => {
-            if (header !== "F2P") {
-                const td = document.createElement("td");
+        Object.entries(row).forEach(([key, value]) => {
+            let td = document.createElement("td");
 
-                if (header === "World") {
-                    td.textContent = row[header] || "";
-
-                    const icon = document.createElement("img");
-                    icon.classList.add("icon-size");
-
-                    if (row["F2P"] && row["F2P"].toUpperCase() === "TRUE") {
-                        icon.src = "https://runescape.wiki/images/F2P_icon.png";
-                    } else {
-                        icon.src = "https://runescape.wiki/images/P2P_icon.png";
-                    }
-
-                    td.prepend(icon);
+            if(key == "world"){
+                td.textContent = value.number;
+                const icon = document.createElement("img");
+                icon.classList.add("icon-size");
+                if (row.world.type.toUpperCase() === "F2P") {
+                    icon.src = "https://runescape.wiki/images/F2P_icon.png";
                 } else {
-                    td.textContent = row[header] || "";
+                    icon.src = "https://runescape.wiki/images/P2P_icon.png";
                 }
-
-                tr.appendChild(td);
+                td.prepend(icon);
+            } else {
+                td.textContent = value;
             }
+            tr.appendChild(td);
         });
-
-        tbody.appendChild(tr);
+        tableContent.appendChild(tr);
     });
 
-    table.appendChild(tbody);
-    output.innerHTML = "";
-    output.appendChild(table);
 }
 
 fetchAndDisplayData();
-setInterval(fetchAndDisplayData, 30000);
+setInterval(fetchAndDisplayData, 150000);
 
 if (window.alt1) {
     alt1.identifyAppUrl("./appconfig.json");
